@@ -12,5 +12,5 @@ Zombie::Zombie()
 
 void Zombie::announce()
 {
-    std::cout << name << " is ready" << std::endl;
+    std::cout << name << ": BraiiiiiiinnnzzzZ.." << std::endl;
 }

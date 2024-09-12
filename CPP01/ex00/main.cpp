@@ -8,14 +8,11 @@ int main(void)
     zombie->announce();
     Zombie Zombie("Andrija");
 
-    Zombie.setname("Andrija");
     Zombie.announce();
     
     randomChump("Valaki");
-   
-   
-    delete(zombie);
 
+    delete(zombie);
 
     return (0);
 }

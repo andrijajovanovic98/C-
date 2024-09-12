@@ -2,9 +2,9 @@ CXX = c++
 
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
-TARGET = Brain
+TARGET = text_replacer
 
-SRCS = main.cpp
+SRCS = main.cpp functions.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 

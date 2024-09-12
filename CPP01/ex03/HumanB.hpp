@@ -19,8 +19,6 @@ public:
     void setWeapon(class Weapon& newWeapon);
     void attack();
 
-
 };
-
 
 #endif

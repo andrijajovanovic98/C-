@@ -14,6 +14,7 @@ void Zombie::announce(void)
 
 Zombie::Zombie(const std::string &setName)
 {
+    this->name = setName;
     std::cout << setName << " is boorn" << std::endl;
 }
 
