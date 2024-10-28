@@ -15,21 +15,18 @@ private:
 
 public:
 	
+	BitcoinExchange();
+	BitcoinExchange(const BitcoinExchange& other);
+	BitcoinExchange& operator=(const BitcoinExchange& other);
+	~BitcoinExchange();
 
 	BitcoinExchange(const std::string& filename);
-
 	float getPrice(const std::string& date) const;
-
 	bool isValidDate(const std::string& date) const;
 
 
 };
 
 int mainLoop(int argc, char **argv);
-
-
-
-
-
 
 #endif

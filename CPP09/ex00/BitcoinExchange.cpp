@@ -1,5 +1,25 @@
 #include "BitcoinExchange.hpp"
 
+// Orthodox Form
+
+BitcoinExchange::BitcoinExchange() {};
+
+BitcoinExchange::BitcoinExchange(const BitcoinExchange& other) {
+    this->prices = other.prices;
+}
+
+BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange& other) {
+    if (this != &other) {
+        this->prices = other.prices;
+    }
+    return *this;
+}
+
+BitcoinExchange::~BitcoinExchange() {};
+
+
+// Member Functions
+
 BitcoinExchange::BitcoinExchange(const std::string& filename)
 {
     
@@ -44,6 +64,25 @@ bool BitcoinExchange::isValidDate(const std::string& date) const {
         if ((i == 4 || i == 7) && date[i] == '-') continue;
         if (!isdigit(date[i])) return false;
     }
+
+ int year, month, day;
+    std::istringstream yearStream(date.substr(0, 4));
+    std::istringstream monthStream(date.substr(5, 2));
+    std::istringstream dayStream(date.substr(8, 2));
+
+    if (!(yearStream >> year) || !(monthStream >> month) || !(dayStream >> day)) {
+        return false;
+    }
+    if (month < 1 || month > 12) {
+        return false;
+    }
+    int daysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    if (month == 2 && ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))) {
+        daysInMonth[1] = 29;
+    }
+    if (day < 1 || day > daysInMonth[month - 1]) {
+        return false;
+    }
     return (true);
 }
 
@@ -58,25 +97,9 @@ void    outOfTheRange(float value)
         std::cerr << "Error: too large a number." << std::endl;
     }
 }
-int errorHandling(int argc, char **argv) {
 
-    if (argc != 2) {
-        std::cerr << "Usage: ./betc <input_file>" << std::endl;
-        return (1);
-    }
-    std::string inputFileName = argv[1];
-    if (inputFileName.substr(inputFileName.find_last_of(".") + 1) != "csv") {
-        std::cerr << "Error: Only .csv files are allowed." << std::endl;
-        return (1);
-    }
-    return (0);
-}
-
-int mainLoop(int argc, char **argv)
+int validFile(char **argv)
 {
-    if (errorHandling(argc, argv) == 1)
-        return (1);
-    BitcoinExchange exchange("data.csv");
     std::ifstream inputFile(argv[1]);
     if (!inputFile.is_open()) {
         std::cerr << "Couldnt open the input file: " << argv[1] << std::endl;
@@ -89,29 +112,79 @@ int mainLoop(int argc, char **argv)
     std::string line;
     if (std::getline(inputFile, line)) {
         if (line != "date | value") {
-            std::cerr << "Invalid input: first line should be: 'data | value'" << std::endl;
+            std::cerr << "Invalid input: first line should be: 'date | value'" << std::endl;
             return (1);
         }   
     }
-    while (std::getline(inputFile, line)) {
+    return (0);
+}
+int errorHandling(int argc, char **argv) {
 
-        std::istringstream ss(line);
-        std::string date;
-        float value;
-        if (std::getline(ss, date, '|') && ss >> value) {
-            date.erase(date.find_last_not_of(" \t") + 1);
-            if (!exchange.isValidDate(date)) {
-                std::cerr << "Bad input " << date << std::endl;
-                continue;
-            }
-            if (value < 0 || value > 1000) 
-                continue;
-            float price = exchange.getPrice(date);
-            if (price != -1)
-                std::cout << date << " => " << value << " = " << value * price << std::endl;
+    const std::string filename = "data.csv";
+    std::ifstream file(filename.c_str());
+    if(!file)
+    {
+        std::cerr << "Error: " << filename << " cant be opened." << std::endl;
+        return (1);
+    }
+    if (argc != 2) {
+        std::cerr << "Usage: ./betc <input_file>" << std::endl;
+        return (1);
+    }
+    std::string inputFileName = argv[1];
+    if (inputFileName.substr(inputFileName.find_last_of(".") + 1) != "csv") {
+        std::cerr << "Error: Only .csv files are allowed." << std::endl;
+        return (1);
+    }
+    if (validFile(argv) == 1)
+        return (1);
+    return (0);
+}
+
+bool checkingCorrectFormat(const std::string& line) {
+    size_t pipePos = line.find('|');
+    if (pipePos != std::string::npos && line[pipePos - 1] == ' ' && line[pipePos + 1] == ' ') {
+        if (line[pipePos - 2] != ' ' && line[pipePos + 2] != ' ') {
+            return true;
         }
-        else
-            std::cerr << "Error: bad input => " << line << std::endl;
+    }
+    return false;
+}
+
+int mainLoop(int argc, char **argv)
+{
+    if (errorHandling(argc, argv) == 1)
+        return (1);
+    BitcoinExchange exchange("data.csv");
+    std::ifstream inputFile(argv[1]);
+    std::string line;
+    std::getline(inputFile, line);
+    while (std::getline(inputFile, line)) {
+        if (checkingCorrectFormat(line)) {
+            size_t pipePos = line.find('|');
+            std::string date = line.substr(0, pipePos - 1);
+            std::string valueStr = line.substr(pipePos + 2);
+            std::istringstream valueStream(valueStr);
+            float value;
+            if (valueStream >> value) {
+                if (!exchange.isValidDate(date)) {
+                    std::cerr << "Bad input " << date << std::endl;
+                    continue;
+                }
+                if (value < 0 || value > 1000) 
+                {
+                    outOfTheRange(value);
+                    continue;
+                }
+                float price = exchange.getPrice(date);
+                if (price != -1)
+                    std::cout << date << " => " << value << " = " << value * price << std::endl;
+            } else {
+                std::cerr << "Invalid value format: " << valueStr << std::endl;
+            }
+        } else {
+            std::cerr << "Invalid line format: " << line << std::endl;
+        }
     }
     return (0);
 }
