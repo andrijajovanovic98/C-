@@ -7,9 +7,6 @@
 #include <algorithm>
 #include <sstream>
 class sorting {
-private:
-
-	
 public:
 
 	std::vector<int> vsort;
@@ -24,13 +21,12 @@ public:
 	void addDesort(int value){
 		desort.push_back(value);
 	}
-	
-
 };
 
 void executingVector(sorting &obj);
 void executingDeque(sorting &obj);
 int	setUp(int argc, char **argv, sorting &obj);
+std::vector<int> calculate_jacobsthal_sequence(int length);
 
 template <typename Container>
 typename Container::iterator binaryInsertPosition(Container& cont, int value) {
@@ -76,6 +72,31 @@ void create_pairsT(Container &vsort) {
         i += 2; 
     }
 }
+
+template <typename Container>
+void sortByLargerValueTT(Container &desort) {
+    int n = desort.size();
+    if (n < 4) return;
+
+    bool sorted = false;
+    while (!sorted) {
+        sorted = true;
+        int i = 1;
+        while (i < n - 1) {
+            if (desort[i] > desort[i + 2]) {
+                typename Container::value_type temp_left = desort[i - 1];
+                typename Container::value_type temp_right = desort[i];
+                desort[i - 1] = desort[i + 1];
+                desort[i] = desort[i + 2];
+                desort[i + 1] = temp_left;
+                desort[i + 2] = temp_right;
+                sorted = false;
+            }
+            i += 2;
+        }
+    }
+}
+
 
 template <typename Container>
 void sortByLargerValueT(Container &desort) {
@@ -139,7 +160,6 @@ void johnsonMergeT(Container1 &vsort, const Container2 &aa, const Container2 &bb
         }
         i++;
     }
-
 }
 
 template <typename T>
@@ -149,6 +169,7 @@ void printVectorValues(T &obj)
 		std::cout << *it << " ";
 	std::cout << std::endl;	
 }
+
 template <typename T>
 void sortInsert(T &a)
 {
@@ -161,6 +182,29 @@ void sortInsert(T &a)
             a[i] = a[i - 1];
             a[i - 1] = temp;
             sortInsert(a);
+        }
+    }
+}
+
+template <typename Container>
+void usingJacobsthalT(Container& con, sorting &obj) {
+    con.clear();
+    
+    con.insert(con.end(), obj.bb.begin(), obj.bb.end());
+
+
+    if (!obj.aa.empty()) {
+        con.insert(con.begin(), obj.aa[0]);
+    }
+
+    std::vector<int> jacobsthal_sequence = calculate_jacobsthal_sequence(obj.aa.size() - 1);
+
+    for (size_t i = 1; i < obj.aa.size() && i - 1 < jacobsthal_sequence.size(); ++i) {
+        int position = jacobsthal_sequence[i - 1];
+        if (static_cast<typename Container::size_type>(position) < con.size()) {
+            con.insert(con.begin() + position, obj.aa[i]);
+        } else {
+            con.push_back(obj.aa[i]);
         }
     }
 }
